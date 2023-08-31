@@ -363,7 +363,6 @@ def crear_planeta_favorito(planetas_id):
         "msg": "Planeta agregado a favoritos"
     }
 
-    return jsonify(request_body), 200
 
     db.session.add(nuevo_planeta_favorito)
     db.session.commit()
@@ -418,8 +417,50 @@ def crear_personaje_favorito(personajes_id):
     
     return jsonify(request_body), 200
 
+#   Agregar vehículos a favorito
 
-#   Eliminar un personaje  a favorito
+@app.route('/favoritos/vehiculos/<int:vehiculos_id>', methods=['POST'])
+def crear_vehiculo_favorito(vehiculos_id):
+
+    request_body = request.get_json(force=True) #obtiene el cuerpo que se envíe por el body desde el postman
+
+# validar que exista el usuario
+    user_query = User.query.filter_by(id=request_body["user_id"]).first()
+    if user_query is None:
+        return jsonify({"msg": "el usuario no está registrado"}), 404
+
+ #validamos que exista el vehiculo
+    vehiculo_query = Vehiculos.query.filter_by(id = vehiculos_id).first() #id es la propiedad de la tabla Vehiculos y vehiculos_id es el valor que se pasa por URL
+    if vehiculo_query is None:
+        return jsonify({"msg": "El vehiculo no existe"}), 404
+
+#validamos que el vehiculo ya existía como fav
+    fav_query = Favoritos.query.filter_by(user_id = request_body["user_id"]).filter_by(vehiculos_id =vehiculos_id).first() #devuelve los valores que coinciden (del user_id la tabla Favoritos) con el body del postman
+    if fav_query:    #el vehiculo existe para ese usuario no se va a volver a agregar
+            return jsonify({"msg": "El vehículo ya existe en favoritos, no se volverá a agregar"}), 400
+        
+
+ #Si no se cumplen las condiciones anteriores, se agrega el vehiculo a favoritos
+
+    nuevo_vehiculo_favorito=Favoritos(user_id= request_body["user_id"], vehiculos_id=vehiculos_id)
+    vehiculo_query = Vehiculos.query.filter_by(id=vehiculos_id).first()
+
+    request_body = {
+        "msg": "Vehículo agregado a favoritos"
+    }
+
+
+    db.session.add(nuevo_vehiculo_favorito)
+    db.session.commit()
+
+    request_body = {
+        "msg": "Vehículo agregado a favorito"
+    }
+    
+    return jsonify(request_body), 200
+
+
+#   Eliminar un personaje a favorito
 
 @app.route('/favoritos/personajes/<int:personajes_id>', methods=['DELETE'])
 def eliminar_personaje_favorito(personajes_id):
@@ -457,6 +498,49 @@ def eliminar_personaje_favorito(personajes_id):
 
     request_body = {
         "msg": "Personaje eliminado en favorito"
+    }
+    
+    return jsonify(request_body), 200
+
+
+# Eliminar planetas en favoritos
+
+@app.route('/favoritos/planetas/<int:planetas_id>', methods=['DELETE'])
+def eliminar_planeta_favorito(planetas_id):
+
+    request_body = request.get_json(force=True) #obtiene el cuerpo que se envíe por el body desde el postman
+
+# validar que exista el usuario
+    user_query = User.query.filter_by(id=request_body["user_id"]).first()
+    if user_query is None:
+        return jsonify({"msg": "el usuario no está registrado"}), 404
+
+ #validamos que exista el planeta
+    planetas_query = Planetas.query.filter_by(id = planetas_id).first() #id es la propiedad de la tabla Planetas y planetas_id es el valor que se pasa por URL
+    if planetas_query is None:
+        return jsonify({"msg": "El planeta no existe"}), 404
+
+#validamos que el planeta ya existía como fav
+    fav_query = Favoritos.query.filter_by(user_id = request_body["user_id"]).filter_by(planetas_id =planetas_id).first() #devuelve los valores que coinciden (del user_id la tabla Favoritos) con el body del postman
+    # if fav_query:    #el planeta existe para ese usuario no se va a volver a agregar
+    #         return jsonify({"msg": "El planeta ya existe en favoritos, no se volverá a agregar"}), 400
+        
+
+ #Si no se cumplen las condiciones anteriores, se agrega el personaje a favoritos
+
+    nuevo_planeta_favorito=Favoritos(user_id= request_body["user_id"], planetas_id=planetas_id)
+    planetas_query_query = Personajes.query.filter_by(id=planetas_id).first()
+
+    request_body = {
+        "msg": "Planeta agregado a favoritos"
+    }
+
+
+    db.session.delete(fav_query)
+    db.session.commit()
+
+    request_body = {
+        "msg": "Planeta eliminado en favorito"
     }
     
     return jsonify(request_body), 200
